@@ -331,7 +331,25 @@ After wiring automated health checks or cron jobs, verify four criteria with rea
 3. **Noise & Messaging Interruption**: confirm healthy runs produce empty stdout, preventing recurring chat notification clutter.
 4. **Configuration Integrity**: run `hermes config check` to confirm `config.yaml` remains pristine and uncorrupted.
 
-Pitfalls:
+### 18. Curated skills vault & cross-machine sync (`hermes-skills`)
+When archiving high-value skills or preparing for machine migration:
+1. **Maintain the central GitHub vault**: `https://github.com/Mrmimee/hermes-skills` (local repo at `~/hermes-skills`).
+2. **Category layout**:
+   - `autonomous-ai-agents/`: routing, gateways, model chains, Jev sub-cerebellum, TTS.
+   - `study-and-engineering/`: architecture teardowns, 3050 lightweight LLM deployment, debuggers, TDD.
+   - `creative-and-design/`: frontend design systems, Claude design, humanizer, styling.
+   - `workflow-and-tools/`: ponytail (lazy path), grill-me, find-skills, bazi-mingli.
+   - `scripts/`: non-resident maintenance scripts (`model_chain_probe.py`, `free_pool_monitor.py`).
+3. **One-click deployment on new host**:
+   ```bash
+   git clone https://github.com/Mrmimee/hermes-skills.git && cd hermes-skills && python install.py
+   ```
+   The `install.py` script automatically links or copies skills into target `$HERMES_HOME/skills` and scripts into `$HERMES_HOME/scripts`.
+4. **Secret hygiene**: Always scan all files with regex for tokens/keys before git commit/push.
+
+## Pitfalls
+
+- **Uninstalled platform toolsets trigger duplicate startup warnings** — entries under `platform_toolsets` for uninstalled platform packages (e.g. `teams: [hermes-teams]`, `google_chat: [hermes-google_chat]`) cause Hermes to emit two warnings on every CLI invocation and boot (`platform 'X' has no valid toolsets configured`). Remove or comment out uninstalled platforms from `config.yaml` under `platform_toolsets` to eliminate noise.
 - **Vertex bare probe 401 authentication trap** — Vertex AI openapi endpoints require a rolling OAuth2 bearer token, not a static API key. Probing it from an external script requires loading `$HERMES_HOME/.env` first, then calling `from agent.vertex_adapter import get_vertex_credentials` to mint the token; hitting the endpoint directly without this headers returns `401 Request is missing required authentication credential`, falsely flagging the provider as down.
 - **Retired stealth/preview models leave a ghost in the picker:** a slug like `x-preview-f-free` can stay selectable in the OpenCode Zen picker even after the relay retires it — selecting it fails every request (401/404). A fresh `--refresh` prunes it from the cached list; if it still shows, it is a picker-side bug, not a live model.
 - **Windows path gotcha:** native Windows programs (git, rg, node, python) do not accept MSYS-style `/c/...` paths — pass `C:/Users/<user>/...` style paths or they fail with 'cannot change to' / 'not found'. Use bash builtins (`cd`, `ls`) freely, but when a native tool reads a file, use the native path form.
