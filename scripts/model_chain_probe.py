@@ -123,8 +123,13 @@ def main():
             fb_base = fb.get('base_url', '')
             fb_key_env = fb.get('key_env', '')
             fb_key = env_vars.get(fb_key_env, os.environ.get(fb_key_env, ''))
-            endpoint = fb_base if '/chat/completions' in fb_base else f"{fb_base.rstrip('/')}/chat/completions"
-            fb_res = probe_chat_completion(endpoint, fb_model, key=fb_key)
+            if fb_prov == 'openrouter':
+                endpoint = 'https://openrouter.ai/api/v1/chat/completions'
+                key = env_vars.get('OPENROUTER_API_KEY', os.environ.get('OPENROUTER_API_KEY', ''))
+            else:
+                endpoint = fb_base if '/chat/completions' in fb_base else f"{fb_base.rstrip('/')}/chat/completions"
+                key = fb_key
+            fb_res = probe_chat_completion(endpoint, fb_model, key=key)
             current_report['fallbacks'].append({
                 'provider': fb_prov,
                 'model': fb_model,
